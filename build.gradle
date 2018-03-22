@@ -1,0 +1,81 @@
+group 'co.uk.redpixel.vendingmachine'
+version '1.0'
+
+buildscript {
+    ext.spek_version = '1.1.5'
+    ext.kotlin_version = '1.2.30'
+    ext.kotlin_argparser_version = '2.0.3'
+    ext.junit_platform_plugin_version = '1.0.2'
+    ext.mockito_kotlin_version = '1.5.0'
+    ext.mockito_version = '2.16.0'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.junit.platform:junit-platform-gradle-plugin:$junit_platform_plugin_version"
+    }
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven { url "http://dl.bintray.com/jetbrains/spek" }
+}
+
+apply plugin: 'kotlin'
+apply plugin: 'application'
+apply plugin: 'org.junit.platform.gradle.plugin'
+
+dependencies {
+    // dev
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile "com.xenomachina:kotlin-argparser:$kotlin_argparser_version"
+    // test
+    testCompile "org.mockito:mockito-core:$mockito_version"
+    testCompile "com.nhaarman:mockito-kotlin:$mockito_kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    testCompile("org.jetbrains.spek:spek-api:$spek_version") {
+        exclude group: 'org.jetbrains.kotlin'
+    }
+    testRuntime("org.jetbrains.spek:spek-junit-platform-engine:$spek_version") {
+        exclude group: 'org.junit.platform'
+        exclude group: 'org.jetbrains.kotlin'
+    }
+}
+
+defaultTasks 'run'
+
+run {
+    standardInput = System.in
+}
+
+mainClassName = 'co.uk.redpixel.vendingmachine.ApplicationKt'
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'co.uk.redpixel.vendingmachine.ApplicationKt'
+    }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+junitPlatform {
+    filters {
+        engines {
+            include 'spek'
+        }
+    }
+}
